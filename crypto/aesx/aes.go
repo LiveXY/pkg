@@ -5,8 +5,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"etms/pkg/bytex"
-	"etms/pkg/strx"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/strx"
 )
 
 // AES加密

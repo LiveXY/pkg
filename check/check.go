@@ -3,8 +3,6 @@ package check
 import (
 	"encoding/base64"
 	"encoding/json"
-	"etms/pkg/bytex"
-	"etms/pkg/strx"
 	"net"
 	"net/url"
 	"regexp"
@@ -12,6 +10,9 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/strx"
 )
 
 // 用户名

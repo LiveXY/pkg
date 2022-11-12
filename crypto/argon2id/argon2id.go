@@ -1,7 +1,7 @@
 package argon2id
 
 import (
-	"etms/pkg/logx"
+	"github.com/livexy/pkg/logx"
 
 	argon "github.com/alexedwards/argon2id"
 	"go.uber.org/zap"

@@ -2,10 +2,11 @@ package template
 
 import (
 	"bytes"
-	"etms/pkg/crypto/md5x"
 	htmltemplate "html/template"
 	"strings"
 	texttemplate "text/template"
+
+	"github.com/livexy/pkg/crypto/md5x"
 
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/valyala/fasttemplate"

@@ -6,8 +6,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"etms/pkg/bytex"
-	"etms/pkg/strx"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/strx"
 )
 
 // RSA生成公私密钥

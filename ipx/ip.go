@@ -1,10 +1,11 @@
 package ipx
 
 import (
-	"etms/pkg/logx"
 	"net"
 	"strings"
 	"sync"
+
+	"github.com/livexy/pkg/logx"
 
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"go.uber.org/zap"

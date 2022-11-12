@@ -1,11 +1,12 @@
 package util
 
 import (
-	"etms/pkg/num"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/livexy/pkg/num"
 )
 
 // 格式输出文件大小

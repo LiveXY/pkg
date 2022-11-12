@@ -2,11 +2,12 @@ package email
 
 import (
 	"crypto/tls"
-	"etms/pkg/bytex"
-	"etms/pkg/logx"
-	"etms/pkg/strx"
 	"net/smtp"
 	"strings"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/logx"
+	"github.com/livexy/pkg/strx"
 
 	"go.uber.org/zap"
 )

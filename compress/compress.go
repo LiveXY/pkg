@@ -2,9 +2,10 @@ package compress
 
 import (
 	"encoding/base64"
-	"etms/pkg/bytex"
-	"etms/pkg/logx"
-	"etms/pkg/strx"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/logx"
+	"github.com/livexy/pkg/strx"
 
 	"github.com/klauspost/compress/zstd"
 	"go.uber.org/zap"

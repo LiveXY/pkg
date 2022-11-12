@@ -4,13 +4,14 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
-	"etms/pkg/bytex"
-	"etms/pkg/strx"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/strx"
 
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"

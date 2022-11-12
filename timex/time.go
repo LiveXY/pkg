@@ -1,9 +1,10 @@
 package timex
 
 import (
-	"etms/pkg/strx"
 	"strconv"
 	"time"
+
+	"github.com/livexy/pkg/strx"
 )
 
 // 用时

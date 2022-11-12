@@ -2,8 +2,9 @@ package base64x
 
 import (
 	"encoding/base64"
-	"etms/pkg/bytex"
-	"etms/pkg/strx"
+
+	"github.com/livexy/pkg/bytex"
+	"github.com/livexy/pkg/strx"
 )
 
 // 加base64
