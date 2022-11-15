@@ -61,7 +61,7 @@ var audiomap = map[string]string{
 var imgexts = []string{"jpg", "png", "gif", "bmp"}
 var zipexts = []string{"zip"}
 var pdfexts = []string{"pdf"}
-var officeexts = []string{"docx", "doc", "pdf", "wps", "zip"}
+var officeexts = []string{"docx", "doc", "pdf", "wps", "xlsx", "xls", "pptx", "ppt", ".dotx", ".dot"}
 var videoexts = []string{"mp4", "m4v", "mov", "flv", "ogg", "webm", "rmvb", "swf", "dvd", "vcd", "mpg", "wmv", "avi"}
 var audioexts = []string{"mp3"}
 
