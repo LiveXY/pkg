@@ -113,3 +113,52 @@ func ToStr(v any) string {
 		return ""
 	}
 }
+
+
+var nums = [...]string{"零", "一", "二", "三", "四", "五", "六", "七", "八", "九"}
+var secs = [...]string{"", "万", "亿", "万亿", "亿亿"}
+var chns = [...]string{"", "十", "百", "千"}
+
+// 数字转中文数字
+func GetZHNum(num int) (str string) {
+	if num < 1 {
+		return nums[0]
+	}
+	pos, needzero := 0, false
+	for num > 0 {
+		sec := num % 10000
+		if needzero {
+			str = nums[0] + str
+		}
+		secstr := secString(sec)
+		if sec != 0 {
+			str = secstr + secs[pos] + str
+		} else {
+			str = secstr + str
+		}
+		needzero = (sec < 1000) && (sec > 0)
+		num /= 10000
+		pos++
+	}
+	if strings.Index(str, "一十") == 0 {
+		str = str[3:]
+	}
+	return
+}
+func secString(sec int) string {
+	str, pos, zero := "", 0, true
+	for sec > 0 {
+		v := sec % 10
+		if v == 0 {
+			if sec == 0 || !zero {
+				zero, str = true, nums[v]+str
+			}
+		} else {
+			ins := nums[v] + chns[pos]
+			zero, str = false, ins+str
+		}
+		pos++
+		sec /= 10
+	}
+	return str
+}
