@@ -68,15 +68,18 @@ func (a *Client) PostRequest(url string, body string, headers ...Header) (string
 	return result, err
 }
 
-func (a *Client) UploadRequest(uri, fieldname string, params map[string]string, imagePath string, headers ...Header) (string, error) {
-	file, err := os.Open(imagePath)
+func (a *Client) UploadRequest(uri, fieldname string, params map[string]string, fullpath, name string, headers ...Header) (string, error) {
+	if len(name) == 0 {
+		name = fullpath
+	}
+	file, err := os.Open(fullpath)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(fieldname, imagePath)
+	part, err := writer.CreateFormFile(fieldname, name)
 	if err != nil {
 		return "", err
 	}
@@ -161,6 +164,9 @@ func (a *Client) ResetParams(params any) map[string]any {
 		return out
 	}
 	err = json.Unmarshal(bs, &jout)
+	if err != nil {
+		return out
+	}
 	keys := []string{}
 	for k := range jout {
 		keys = append(keys, k)
