@@ -55,15 +55,17 @@ var videomap = map[string]string{
 	"415649204c495354":             "avi",
 }
 var audiomap = map[string]string{
-	"494433": "mp3",
+	"4d546864":         "mid",
+	"494433":           "mp3",
+	"57415645666d7420": "wav",
 }
 
-var imgexts = []string{"jpg", "png", "gif", "bmp"}
+var imgexts = []string{"jpg", "jpeg", "png", "gif", "bmp"}
 var zipexts = []string{"zip"}
 var pdfexts = []string{"pdf"}
 var officeexts = []string{"docx", "doc", "pdf", "wps", "xlsx", "xls", "pptx", "ppt", ".dotx", ".dot"}
-var videoexts = []string{"mp4", "m4v", "mov", "flv", "ogg", "webm", "rmvb", "swf", "dvd", "vcd", "mpg", "wmv", "avi"}
-var audioexts = []string{"mp3"}
+var videoexts = []string{"mp4", "m4v", "mov", "flv", "ogg", "webm", "rmvb", "swf", "dvd", "vcd", "mpg", "mpeg", "wmv", "avi"}
+var audioexts = []string{"mp3", "mid", "wav"}
 
 func bytesToHexString(src []byte) string {
 	res := bytes.Buffer{}

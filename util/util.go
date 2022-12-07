@@ -77,15 +77,6 @@ func FormatCNUseTime(t int64) (size string) {
 	}
 }
 
-// 三目运算int
-func IF[T any](cond bool, suc, fail T) T {
-	if cond {
-		return suc
-	} else {
-		return fail
-	}
-}
-
 // 用时
 func UseTime(title string, fn func(int), n ...int) string {
 	start := time.Now()
