@@ -2,34 +2,45 @@ package reflectx
 
 import (
 	"reflect"
+	"strings"
 	"sync"
 )
 
-type structcache struct {
-	name string
-	fields int
+type TableStruct struct {
+	Name   string
+	Fields int
+	PKs    []string
 }
 
-var namemap map[any]structcache
+var tablemap map[any]TableStruct
 var lock sync.Mutex
-func GetStructName[T any]() (string, int) {
+
+func GetTableStruct[T any]() TableStruct {
 	var t T
-	if cache, ok := namemap[t]; ok {
-		return cache.name, cache.fields
+	if cache, ok := tablemap[t]; ok {
+		return cache
 	} else {
 		lock.Lock()
-		if namemap == nil {
-			namemap = make(map[any]structcache)
+		if tablemap == nil {
+			tablemap = make(map[any]TableStruct)
 		}
 		tof := reflect.TypeOf(t)
 		vk := tof.Kind()
 		if vk == reflect.Ptr {
 			tof = tof.Elem()
 		}
-		name := tof.Name()
-		fields := tof.NumField()
-		namemap[t] = structcache{name: name, fields: fields}
+		table := TableStruct{Name: tof.Name(), Fields: tof.NumField()}
+		for i := 0; i < tof.NumField(); i++ {
+			tag := tof.Field(i).Tag.Get("gorm")
+			if strings.Contains(tag, "primaryKey") {
+				in := strings.Index(tag, "column:")
+				if in != -1 {
+					table.PKs = append(table.PKs, tag[in+7:])
+				}
+			}
+		}
+		tablemap[t] = table
 		lock.Unlock()
-		return name, fields
+		return table
 	}
 }
