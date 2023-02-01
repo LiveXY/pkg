@@ -3,6 +3,7 @@ package template
 import (
 	"bytes"
 	htmltemplate "html/template"
+	"path"
 	"strings"
 	texttemplate "text/template"
 
@@ -103,6 +104,30 @@ func HtmlTemplate(text string, param map[string]any) (string, error) {
 			return "", err
 		}
 		htmlTemplateMap.Set(key, tmpl)
+		return buf.String(), nil
+	}
+}
+
+func HtmlFileTemplate(filename string, param interface{}, funcMap map[string]interface{}) (string, error) {
+	name := path.Base(filename)
+	var buf bytes.Buffer
+	obj, ok := htmlTemplateMap.Get(filename)
+	if ok {
+		err := obj.ExecuteTemplate(&buf, name, param)
+		if err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	} else {
+		tmpl, err := htmltemplate.New(name).Funcs(funcMap).ParseFiles(filename)
+		if err != nil {
+			return "", err
+		}
+		err = tmpl.ExecuteTemplate(&buf, name, param)
+		if err != nil {
+			return "", err
+		}
+		htmlTemplateMap.Set(filename, tmpl)
 		return buf.String(), nil
 	}
 }
