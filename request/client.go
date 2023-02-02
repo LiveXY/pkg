@@ -12,54 +12,67 @@ import (
 )
 
 type Client struct {
-	httpClient *http.Client
+	httpclient *http.Client
 	timeout    time.Duration
 }
 
 func CreateClient(timeout time.Duration) *Client {
-	client := &Client{timeout: timeout, httpClient: &http.Client{Timeout: timeout}}
+	client := &Client{timeout: timeout, httpclient: &http.Client{Timeout: timeout}}
 	return client
 }
 
 func (a *Client) GetRepetition(url string, params []QueryParameter, headers ...Header) (string, error) {
-	fullUrl := url + ConvertToQueryParamsRepetition(params)
-	return a.GetRequest(fullUrl, headers...)
+	fullurl := url + ConvertToQueryParamsRepetition(params)
+	return a.Request("GET", fullurl, nil, headers...)
 }
 func (a *Client) Get(url string, params map[string]any, headers ...Header) (string, error) {
-	fullUrl := url + ConvertToQueryParams(params)
-	return a.GetRequest(fullUrl, headers...)
+	fullurl := url + ConvertToQueryParams(params)
+	return a.Request("GET", fullurl, nil, headers...)
 }
-func (a *Client) GetRequest(url string, headers ...Header) (string, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return "", err
-	}
-	for _, header := range headers {
-		req.Header.Set(header.Name, header.Value)
-	}
-	resp, err := a.httpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	result, err := responseHandle(resp, err)
-	return result, err
+func (a *Client) Delete(url string, params map[string]any, headers ...Header) (string, error) {
+	fullurl := url + ConvertToQueryParams(params)
+	return a.Request("DELETE", fullurl, nil, headers...)
 }
 
 func (a *Client) Post(url string, params map[string]any, body string, headers ...Header) (string, error) {
-	fullUrl := url + ConvertToQueryParams(params)
-	return a.PostRequest(fullUrl, body, headers...)
+	fullurl := url + ConvertToQueryParams(params)
+	return a.Request("POST", fullurl, strings.NewReader(body), headers...)
 }
-func (a *Client) PostRequest(url string, body string, headers ...Header) (string, error) {
-	req, err := http.NewRequest("POST", url, strings.NewReader(body))
+func (a *Client) PostJson(url string, params map[string]any, body string, headers ...Header) (string, error) {
+	fullurl := url + ConvertToQueryParams(params)
+	headers = append(headers, Header{"Content-Type", "application/json"})
+	return a.Request("POST", fullurl, strings.NewReader(body), headers...)
+}
+
+func (a *Client) Put(url string, params map[string]any, body string, headers ...Header) (string, error) {
+	fullurl := url + ConvertToQueryParams(params)
+	return a.Request("PUT", fullurl, strings.NewReader(body), headers...)
+}
+func (a *Client) PutJson(url string, params map[string]any, body string, headers ...Header) (string, error) {
+	fullurl := url + ConvertToQueryParams(params)
+	headers = append(headers, Header{"Content-Type", "application/json"})
+	return a.Request("PUT", fullurl, strings.NewReader(body), headers...)
+}
+
+func (a *Client) Del(url string, params map[string]any, body string, headers ...Header) (string, error) {
+	fullurl := url + ConvertToQueryParams(params)
+	return a.Request("DELETE", fullurl, strings.NewReader(body), headers...)
+}
+func (a *Client) DelJson(url string, params map[string]any, body string, headers ...Header) (string, error) {
+	fullurl := url + ConvertToQueryParams(params)
+	headers = append(headers, Header{"Content-Type", "application/json"})
+	return a.Request("DELETE", fullurl, strings.NewReader(body), headers...)
+}
+
+func (a *Client) Request(method, url string, body io.Reader, headers ...Header) (string, error) {
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	for _, header := range headers {
 		req.Header.Set(header.Name, header.Value)
 	}
-	resp, err := a.httpClient.Do(req)
+	resp, err := a.httpclient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +118,7 @@ func (a *Client) UploadRequest(uri, fieldname string, params map[string]string, 
 	for _, header := range headers {
 		req.Header.Set(header.Name, header.Value)
 	}
-	resp, err := a.httpClient.Do(req)
+	resp, err := a.httpclient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -148,7 +161,7 @@ func (a *Client) UploadFiles(uri, fieldname string, params map[string]string, fi
 	for _, header := range headers {
 		req.Header.Set(header.Name, header.Value)
 	}
-	resp, err := a.httpClient.Do(req)
+	resp, err := a.httpclient.Do(req)
 	if err != nil {
 		return "", err
 	}
