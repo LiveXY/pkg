@@ -90,9 +90,9 @@ func newInitLogger(cfg LogConfig, name, ext string) *zap.Logger {
 		TimeKey:       "time",
 		LevelKey:      "level",
 		NameKey:       "logger",
-		CallerKey:     "line",
+		//CallerKey:     "line",
 		MessageKey:    "msg",
-		StacktraceKey: "stacktrace",
+		//StacktraceKey: "stacktrace",
 		LineEnding:    zapcore.DefaultLineEnding,
 		EncodeLevel:   zapcore.LowercaseLevelEncoder, // 小写编码器
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {

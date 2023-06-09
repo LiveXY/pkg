@@ -34,8 +34,11 @@ func GetIPAddress(ip string) string {
 	if len(add) < 4 || add[2] == "0" && add[3] == "0" {
 		return ""
 	}
-	if add[2] == "0" {
+	if add[2] == "0" && add[3] != "0" {
 		return add[3]
+	}
+	if add[3] == "0" && add[2] != "0" {
+		return add[2]
 	}
 	return add[2] + " " + add[3]
 }
