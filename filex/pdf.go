@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 const match = "/Page\x00"
@@ -34,10 +35,10 @@ func pdfPages(reader io.ByteReader) (pages int) {
 
 // 获取PDF文件的页数
 func PDFPages(path string) (pages int) {
-	if reader, err := os.Open(path); err == nil {
-		reader.Chdir()
+	if reader, err := os.Open(filepath.Clean(path)); err == nil {
+		_ = reader.Chdir()
 		pages = pdfPages(bufio.NewReader(reader))
-		reader.Close()
+		_ = reader.Close()
 	}
 	return
 }

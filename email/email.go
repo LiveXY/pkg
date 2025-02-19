@@ -95,8 +95,7 @@ func SendEmail(cfg SMTPConfig, to, subject, body string) (err error) {
 			logx.Error.Error("发送邮件错误write：", zap.String("to", to), zap.String("body", body), zap.Error(err))
 			return err
 		}
-		c.Quit()
-		err = nil
+		err = c.Quit()
 	} else {
 		err := smtp.SendMail(cfg.Host, auth, from2, sendto, msg)
 		if err != nil {

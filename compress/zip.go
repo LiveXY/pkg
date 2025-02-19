@@ -56,20 +56,20 @@ func UnZip(zipfile, dir string) ([]string, error) {
 			if err != nil {
 				return list, err
 			}
-			fw, err := os.OpenFile(fpath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, f.Mode())
+			fw, err := os.OpenFile(filepath.Clean(fpath), os.O_CREATE|os.O_RDWR|os.O_TRUNC, f.Mode())
 			if err != nil {
-				fr.Close()
+				_ = fr.Close()
 				return list, err
 			}
 			_, err = io.Copy(fw, fr)
 			if err != nil {
-				fr.Close()
-				fw.Close()
+				_ = fr.Close()
+				_ = fw.Close()
 				return list, err
 			}
 			list = append(list, decodeName)
-			fr.Close()
-			fw.Close()
+			_ = fr.Close()
+			_ = fw.Close()
 		}
 	}
 	return list, nil
@@ -80,15 +80,12 @@ func Zip(zipPath string, files []string) error {
 	if len(files) == 0 {
 		return errors.New("nil file")
 	}
-	fzip, err := os.Create(zipPath)
+	fzip, err := os.Create(filepath.Clean(zipPath))
 	if err != nil {
 		return err
 	}
 	defer fzip.Close()
 	zipfile := zip.NewWriter(fzip)
-	if err != nil {
-		return err
-	}
 	defer zipfile.Close()
 	for _, f := range files {
 		filename := filepath.Base(f)
@@ -96,7 +93,7 @@ func Zip(zipPath string, files []string) error {
 		if err != nil {
 			return err
 		}
-		fc, err := os.ReadFile(f)
+		fc, err := os.ReadFile(filepath.Clean(f))
 		if err != nil {
 			return err
 		}

@@ -21,7 +21,7 @@ import (
 // 去空行读文件
 func ReadLine(fpath string) []string {
 	var data []string
-	f, _ := os.Open(fpath)
+	f, _ := os.Open(filepath.Clean(fpath))
 	defer f.Close()
 	r := bufio.NewReader(f)
 	for {
@@ -47,13 +47,13 @@ func readLine(r *bufio.Reader) (string, error) {
 
 // 读文本文件
 func ReadText(fpath string) string {
-	bytes, _ := os.ReadFile(fpath)
+	bytes, _ := os.ReadFile(filepath.Clean(fpath))
 	return bytex.ToStr(bytes)
 }
 
 // 写文件数据
 func WriteLine(fpath string, data []byte) error {
-	file, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filepath.Clean(fpath), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
@@ -93,12 +93,12 @@ func FileExist(file string) bool {
 
 // 复制文件
 func FileCopy(file, dst string) error {
-	src, err := os.Open(file)
+	src, err := os.Open(filepath.Clean(file))
 	if err != nil {
 		return err
 	}
 	defer src.Close()
-	out, err := os.Create(dst)
+	out, err := os.Create(filepath.Clean(dst))
 	if err != nil {
 		return err
 	}
@@ -119,38 +119,38 @@ func DeleteFile(fpath string) error {
 
 // 文件MD5
 func FileMD5(fpath string) string {
-	file, err := os.Open(fpath)
+	file, err := os.Open(filepath.Clean(fpath))
 	if err != nil {
 		return ""
 	}
+	defer file.Close()
 	md5 := md5.New()
 	if _, err = io.Copy(md5, file); err != nil {
 		return ""
 	}
 	md5str := hex.EncodeToString(md5.Sum(nil))
-	file.Close()
 	return md5str
 }
 
 // 文件大小
 func FileSize(fpath string) int64 {
-	file, err := os.Open(fpath)
+	file, err := os.Open(filepath.Clean(fpath))
 	if err != nil {
 		return 0
 	}
+	defer file.Close()
 	info, err := file.Stat()
 	if err != nil {
 		return 0
 	}
 	fsize := info.Size()
-	file.Close()
 	return fsize
 }
 
 // 目录大小
 func DirSize(path string) int64 {
 	var size int64
-	filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			size += info.Size()
 		}
@@ -161,12 +161,12 @@ func DirSize(path string) int64 {
 
 // 图片尺寸
 func GetImageSize(fpath string) (int, int, error) {
-	imgfile, err := os.Open(fpath)
+	imgfile, err := os.Open(filepath.Clean(fpath))
 	if err != nil {
 		return 0, 0, err
 	}
+	defer imgfile.Close()
 	img, _, err := image.DecodeConfig(imgfile)
-	imgfile.Close()
 	if err != nil {
 		return 0, 0, err
 	}

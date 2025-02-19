@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -97,11 +98,11 @@ func getFileType(fsrc []byte, types map[string]string) (fileType string) {
 
 func File(fpath string) *fileType {
 	ext := strings.ToLower(strings.Trim(path.Ext(fpath), "."))
-	fd, err := os.Open(fpath)
+	fd, err := os.Open(filepath.Clean(fpath))
 	if err == nil {
+		defer fd.Close()
 		var buffer [512]byte
 		count, _ := fd.Read(buffer[:])
-		fd.Close()
 		return FileBytes(ext, buffer[:count])
 	}
 	return &fileType{}

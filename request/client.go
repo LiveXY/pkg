@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -85,7 +86,7 @@ func (a *Client) UploadRequest(uri, fieldname string, params map[string]string, 
 	if len(name) == 0 {
 		name = fullpath
 	}
-	file, err := os.Open(fullpath)
+	file, err := os.Open(filepath.Clean(fullpath))
 	if err != nil {
 		return "", err
 	}
