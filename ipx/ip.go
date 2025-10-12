@@ -20,7 +20,7 @@ func Init(dbfile string) {
 		logx.Error.Error("未配置IP地址库：", zap.Error(err))
 		panic("未配置IP地址库->" + dbfile)
 	}
-	searcher, err = xdb.NewWithBuffer(cbuff)
+	searcher, err = xdb.NewWithBuffer(xdb.IPv4, cbuff)
 	if err != nil {
 		logx.Error.Error("未配置IP地址库：", zap.Error(err))
 		panic("未配置IP地址库->" + dbfile)
