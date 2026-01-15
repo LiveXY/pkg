@@ -7,15 +7,30 @@ import (
 
 	"github.com/livexy/pkg/logx"
 
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
+	"github.com/lionsoul2014/ip2region/binding/golang/service"
 	"go.uber.org/zap"
 )
 
-var searcher *xdb.Searcher
+var searcher *service.Ip2Region
 
 // 初始化IP库
 func Init(dbfile string) {
-	cbuff, err := xdb.LoadContentFromFile(dbfile)
+	v4Config, err := service.NewV4Config(service.VIndexCache, dbfile, 20)
+	if err != nil {
+		logx.Error.Error("未配置IPv4地址库："+dbfile, zap.Error(err))
+		panic("未配置IP地址库->" + dbfile)
+	}
+	v6Config, err := service.NewV6Config(service.VIndexCache, dbfile+".v6", 20)
+	if err != nil {
+		logx.Error.Error("未配置IPv6地址库："+dbfile+".v6", zap.Error(err))
+		panic("未配置IP地址库->" + dbfile + ".v6")
+	}
+	searcher, err = service.NewIp2Region(v4Config, v6Config)
+	if err != nil {
+		logx.Error.Error("未配置IP地址库：", zap.Error(err))
+		panic("未配置IP地址库->" + dbfile)
+	}
+	/*cbuff, err := xdb.LoadContentFromFile(dbfile)
 	if err != nil {
 		logx.Error.Error("未配置IP地址库：", zap.Error(err))
 		panic("未配置IP地址库->" + dbfile)
@@ -24,6 +39,12 @@ func Init(dbfile string) {
 	if err != nil {
 		logx.Error.Error("未配置IP地址库：", zap.Error(err))
 		panic("未配置IP地址库->" + dbfile)
+	}*/
+}
+
+func Close() {
+	if searcher != nil {
+		searcher.Close()
 	}
 }
 

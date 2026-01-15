@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -42,17 +41,13 @@ func Init(cfg LogConfig, name ...string) {
 // 异常处理
 func Recover(desc string) {
 	if err := recover(); err != nil {
-		switch err.(type) {
+		switch err := err.(type) {
 		case string:
-			Error.Error(desc + " 捕获到异常: " + err.(string))
+			Error.Error(desc + " 捕获到异常: " + err)
 		case error:
-			Error.Error(desc + " 捕获到异常: ", zap.Error(errors.WithStack(err.(error))))
+			Error.Error(desc+" 捕获到异常: ", zap.Error(errors.WithStack(err)))
 		}
 	}
-}
-
-func Dump(vs ...any) {
-	Logger.Info(spew.Sdump(vs))
 }
 
 // 记录错误
@@ -87,14 +82,14 @@ func getWriter(cfg LogConfig, name, ext string) lumberjack.Logger {
 
 func newInitLogger(cfg LogConfig, name, ext string) *zap.Logger {
 	encodercfg := zapcore.EncoderConfig{
-		TimeKey:       "time",
-		LevelKey:      "level",
-		NameKey:       "logger",
+		TimeKey:  "time",
+		LevelKey: "level",
+		NameKey:  "logger",
 		//CallerKey:     "line",
-		MessageKey:    "msg",
+		MessageKey: "msg",
 		//StacktraceKey: "stacktrace",
-		LineEnding:    zapcore.DefaultLineEnding,
-		EncodeLevel:   zapcore.LowercaseLevelEncoder, // 小写编码器
+		LineEnding:  zapcore.DefaultLineEnding,
+		EncodeLevel: zapcore.LowercaseLevelEncoder, // 小写编码器
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			enc.AppendString(t.Format("2006-01-02 15:04:05"))
 		},
@@ -104,8 +99,8 @@ func newInitLogger(cfg LogConfig, name, ext string) *zap.Logger {
 	}
 	writer := getWriter(cfg, name, ext)
 	consolecfg := zapcore.EncoderConfig{
-		TimeKey:       "time",
-		MessageKey:    "msg",
+		TimeKey:    "time",
+		MessageKey: "msg",
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			enc.AppendString(t.Format("2006-01-02 15:04:05"))
 		},

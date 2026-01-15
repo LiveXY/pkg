@@ -9,19 +9,19 @@ import (
 
 	"github.com/livexy/pkg/crypto/md5x"
 
-	cmap "github.com/orcaman/concurrent-map/v2"
+	"github.com/puzpuzpuz/xsync/v4"
 	"github.com/valyala/fasttemplate"
 )
 
-var fastTemplateMap = cmap.New[*fasttemplate.Template]()
-var textTemplateMap = cmap.New[*texttemplate.Template]()
-var htmlTemplateMap = cmap.New[*htmltemplate.Template]()
-var textkeys = []string { "{{if ", "{{ if ", "{{else}}", "{{ else }}", "{{end}}", "{{ end }}" }
-var htmlkeys = []string { "</html>", "</body>" }
+var fastTemplateMap = xsync.NewMap[string, *fasttemplate.Template]()
+var textTemplateMap = xsync.NewMap[string, *texttemplate.Template]()
+var htmlTemplateMap = xsync.NewMap[string, *htmltemplate.Template]()
+var textkeys = []string{"{{if ", "{{ if ", "{{else}}", "{{ else }}", "{{end}}", "{{ end }}"}
+var htmlkeys = []string{"</html>", "</body>"}
 
 func check(text string, keys []string) bool {
 	var flag bool
-	for _, v := range textkeys {
+	for _, v := range keys {
 		if strings.Contains(text, v) {
 			flag = true
 			break
@@ -41,7 +41,7 @@ func FastTemplate(text string, param map[string]any) (string, error) {
 		return TextTemplate(text, param)
 	}
 	key := md5x.MD5(text)
-	obj, ok := fastTemplateMap.Get(key)
+	obj, ok := fastTemplateMap.Load(key)
 	if ok {
 		return obj.ExecuteString(param), nil
 	} else {
@@ -49,7 +49,7 @@ func FastTemplate(text string, param map[string]any) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		fastTemplateMap.Set(key, tmpl)
+		fastTemplateMap.Store(key, tmpl)
 		return tmpl.ExecuteString(param), nil
 	}
 }
@@ -60,7 +60,7 @@ func TextTemplate(text string, param map[string]any) (string, error) {
 	}
 	var buf bytes.Buffer
 	key := md5x.MD5(text)
-	obj, ok := textTemplateMap.Get(key)
+	obj, ok := textTemplateMap.Load(key)
 	if ok {
 		err := obj.Execute(&buf, param)
 		if err != nil {
@@ -76,7 +76,7 @@ func TextTemplate(text string, param map[string]any) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		textTemplateMap.Set(key, tmpl)
+		textTemplateMap.Store(key, tmpl)
 		return buf.String(), nil
 	}
 }
@@ -87,7 +87,7 @@ func HtmlTemplate(text string, param map[string]any) (string, error) {
 	}
 	var buf bytes.Buffer
 	key := md5x.MD5(text)
-	obj, ok := htmlTemplateMap.Get(key)
+	obj, ok := htmlTemplateMap.Load(key)
 	if ok {
 		err := obj.Execute(&buf, param)
 		if err != nil {
@@ -103,7 +103,7 @@ func HtmlTemplate(text string, param map[string]any) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		htmlTemplateMap.Set(key, tmpl)
+		htmlTemplateMap.Store(key, tmpl)
 		return buf.String(), nil
 	}
 }
@@ -111,7 +111,7 @@ func HtmlTemplate(text string, param map[string]any) (string, error) {
 func HtmlFileTemplate(filename string, param interface{}, funcMap map[string]interface{}) (string, error) {
 	name := path.Base(filename)
 	var buf bytes.Buffer
-	obj, ok := htmlTemplateMap.Get(filename)
+	obj, ok := htmlTemplateMap.Load(filename)
 	if ok {
 		err := obj.ExecuteTemplate(&buf, name, param)
 		if err != nil {
@@ -127,7 +127,7 @@ func HtmlFileTemplate(filename string, param interface{}, funcMap map[string]int
 		if err != nil {
 			return "", err
 		}
-		htmlTemplateMap.Set(filename, tmpl)
+		htmlTemplateMap.Store(filename, tmpl)
 		return buf.String(), nil
 	}
 }
