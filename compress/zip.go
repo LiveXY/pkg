@@ -17,6 +17,8 @@ import (
 	"golang.org/x/text/transform"
 )
 
+const MaxDecompressSize = 2 * 1024 * 1024 * 1024
+
 // 解压文件
 func UnZip(zipfile, dir string) ([]string, error) {
 	var list []string
@@ -47,7 +49,7 @@ func UnZip(zipfile, dir string) ([]string, error) {
 		} else {
 			if strings.Contains(decodeName, string(os.PathSeparator)) {
 				tpath := filepath.Dir(fpath)
-				err := os.MkdirAll(tpath, os.ModePerm)
+				err := os.MkdirAll(tpath, 0750)
 				if err != nil {
 					return list, err
 				}
@@ -61,7 +63,8 @@ func UnZip(zipfile, dir string) ([]string, error) {
 				_ = fr.Close()
 				return list, err
 			}
-			_, err = io.Copy(fw, fr)
+			lr := io.LimitReader(fr, MaxDecompressSize)
+			_, err = io.Copy(fw, lr)
 			if err != nil {
 				_ = fr.Close()
 				_ = fw.Close()

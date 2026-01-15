@@ -1,8 +1,9 @@
 package randx
 
 import (
+	"crypto/rand"
 	"math"
-	"math/rand"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -10,18 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
-// 随机UUID
-func UUID() string { return uuid.New().String() }
-
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const symbolBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+,.?/:;{}[]`~"
 const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	letterIdxBits = 6                    // 6 bits 可以表示 64 个索引 (2^6)
+	letterIdxMask = 1<<letterIdxBits - 1 // 掩码 00111111
+	symbolIdxBits = 7
+	symbolIdxMask = 1<<symbolIdxBits - 1 // 01111111 (7个1)
 )
-var src = rand.NewSource(time.Now().UnixNano())
-var randx = rand.New(src)
 
 // 随机字符串
 func Str(n int) string {
@@ -30,43 +27,52 @@ func Str(n int) string {
 	}
 	sb := strings.Builder{}
 	sb.Grow(n)
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		panic("crypto/rand failed: " + err.Error())
+	}
+	for i := 0; i < n; i++ {
+		// 将随机字节映射到 letterBytes 范围
+		idx := int(b[i] & letterIdxMask)
+		if idx < len(letterBytes) {
 			sb.WriteByte(letterBytes[idx])
+		} else {
 			i--
 		}
-		cache >>= letterIdxBits
-		remain--
 	}
 	return sb.String()
 }
+
 func Symbol(n int) string {
-	if n < 1 {
-		return ""
-	}
 	sb := strings.Builder{}
 	sb.Grow(n)
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+	cache, remain := make([]byte, n), n
+	for i := 0; i < n; {
 		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
+			if _, err := rand.Read(cache); err != nil {
+				panic("crypto/rand failed: " + err.Error())
+			}
+			remain = n
 		}
-		if idx := int(cache & letterIdxMask); idx < len(symbolBytes) {
-			sb.WriteByte(symbolBytes[idx])
-			i--
-		}
-		cache >>= letterIdxBits
+		idx := int(cache[remain-1] & symbolIdxMask)
 		remain--
+		if idx < len(symbolBytes) {
+			sb.WriteByte(symbolBytes[idx])
+			i++
+		}
 	}
 	return sb.String()
 }
+
+// 随机UUID
+func UUID() string { return uuid.New().String() }
+
 func OrderID() string {
 	begin := time.Now().Format("20060102150405")
 	end := CaptchaCode(7)
 	return begin + end
 }
+
 func CaptchaCode(len int) string {
 	min := int64(math.Pow10(len - 1))
 	max := int64(math.Pow10(len) - 1)
@@ -79,17 +85,43 @@ func Int(min, max int) int {
 	if max < min {
 		return min
 	}
-	return randx.Intn(max-min+1) + min
+	rangeSize := int64(max - min + 1)
+	n, err := rand.Int(rand.Reader, big.NewInt(rangeSize))
+	if err != nil {
+		return min
+	}
+	return int(n.Int64()) + min
 }
+
 func Int64(min, max int64) int64 {
 	if max < min {
 		return min
 	}
-	return randx.Int63n(max-min+1) + min
+	delta := new(big.Int).SetInt64(max - min + 1)
+	n, err := rand.Int(rand.Reader, delta)
+	if err != nil {
+		panic("crypto/rand 失败: " + err.Error())
+	}
+	return n.Int64() + min
 }
+
 func Int63() int64 {
-	return randx.Int63()
+	max := new(big.Int).Lsh(big.NewInt(1), 63)
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		panic("crypto/rand failed: " + err.Error())
+	}
+	return n.Int64()
 }
+
 func Int63n(n int64) int64 {
-	return randx.Int63n(n)
+	if n <= 0 {
+		panic("invalid argument to Int63n")
+	}
+	max := big.NewInt(n)
+	result, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		panic("crypto/rand failed: " + err.Error())
+	}
+	return result.Int64()
 }

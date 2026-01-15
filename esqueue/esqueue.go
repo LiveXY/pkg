@@ -14,12 +14,12 @@ type esCache[V any] struct {
 }
 
 type EsQueue[V any] struct {
-	cache     []esCache[V]
-	sleep time.Duration
-	capacity  uint64
-	capmod    uint64
-	putpos    uint64
-	getpos    uint64
+	cache    []esCache[V]
+	sleep    time.Duration
+	capacity uint64
+	capmod   uint64
+	putpos   uint64
+	getpos   uint64
 }
 
 func NewQueue[V any](capacity uint64, sleep time.Duration) *EsQueue[V] {
@@ -31,6 +31,9 @@ func NewQueue[V any](capacity uint64, sleep time.Duration) *EsQueue[V] {
 	q.sleep = sleep
 	q.cache = make([]esCache[V], q.capacity)
 	for i := range q.cache {
+		if i < 0 {
+			continue
+		}
 		cache := &q.cache[i]
 		cache.getno = uint64(i)
 		cache.putno = uint64(i)

@@ -3,7 +3,7 @@ package filex
 import (
 	"bufio"
 	"bytes"
-	"crypto/md5"
+	"crypto/md5" // #nosec G501
 	"encoding/hex"
 	"image"
 	"io"
@@ -53,7 +53,7 @@ func ReadText(fpath string) string {
 
 // 写文件数据
 func WriteLine(fpath string, data []byte) error {
-	file, err := os.OpenFile(filepath.Clean(fpath), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filepath.Clean(fpath), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func FileCopy(file, dst string) error {
 
 // 创建目录
 func MkDir(p string) error {
-	return os.MkdirAll(p, os.ModePerm)
+	return os.MkdirAll(p, 0750)
 }
 
 // 删除文件
@@ -124,7 +124,7 @@ func FileMD5(fpath string) string {
 		return ""
 	}
 	defer file.Close()
-	md5 := md5.New()
+	md5 := md5.New() // #nosec G401
 	if _, err = io.Copy(md5, file); err != nil {
 		return ""
 	}

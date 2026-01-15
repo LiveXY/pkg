@@ -15,6 +15,9 @@ import (
 func Int64ToStr(num int64) string {
 	return strconv.FormatInt(num, 10)
 }
+func UInt64ToStr(num uint64) string {
+	return strconv.FormatUint(num, 10)
+}
 func UIntToStr(num uint) string {
 	return strconv.FormatUint(uint64(num), 10)
 }
@@ -70,7 +73,6 @@ func FloatRound(val float64, n int32) float64 {
 	return val
 }
 
-
 // 转字符串
 func ToStr(v any) string {
 	var tmp = reflect.Indirect(reflect.ValueOf(v)).Interface()
@@ -113,7 +115,6 @@ func ToStr(v any) string {
 		return ""
 	}
 }
-
 
 var nums = [...]string{"零", "一", "二", "三", "四", "五", "六", "七", "八", "九"}
 var secs = [...]string{"", "万", "亿", "万亿", "亿亿"}

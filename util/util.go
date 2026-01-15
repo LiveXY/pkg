@@ -114,7 +114,7 @@ func ToStr(params ...any) string {
 		case uint32:
 			key += num.UIntToStr(uint(t)) + "_"
 		case uint64:
-			key += num.Int64ToStr(int64(t)) + "_"
+			key += num.UInt64ToStr(t) + "_"
 		case float32:
 			key += strings.ReplaceAll(num.FloatToStr(t), ".00", "") + "_"
 		case float64:

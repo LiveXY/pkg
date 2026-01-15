@@ -3,6 +3,7 @@ package strx
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,9 @@ func ToUInt(valstr string) uint {
 	val, err := strconv.ParseInt(valstr, 10, 64)
 	if err != nil {
 		val = 0
+	}
+	if val < 0 || uint64(val) > math.MaxUint {
+		return 0
 	}
 	return uint(val)
 }
@@ -59,6 +63,9 @@ func ToInt8(valstr string) int8 {
 	if err != nil {
 		val = 0
 	}
+	if val < math.MinInt8 || val > math.MaxInt8 {
+		return 0
+	}
 	return int8(val)
 }
 
@@ -86,6 +93,18 @@ func Format(tpl string, args ...any) string {
 }
 
 func ToBytes(s string) []byte {
+	if s == "" {
+		return nil
+	}
+	// #nosec G103
+	return unsafe.Slice(unsafe.StringData(s), len(s))
+}
+
+func ToBytes2(s string) []byte {
+	if s == "" {
+		return nil
+	}
+	// #nosec G103
 	return *(*[]byte)(unsafe.Pointer(
 		&struct {
 			string
