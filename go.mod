@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/klauspost/compress v1.18.2
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20260109033043-398149f17e54
-	github.com/livexy/linq v1.0.6
+	github.com/livexy/linq v1.0.7
 	github.com/pkg/errors v0.9.1
 	github.com/puzpuzpuz/xsync/v4 v4.3.0
 	github.com/shopspring/decimal v1.4.0
