@@ -1,12 +1,12 @@
 package logx
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -45,14 +45,14 @@ func Recover(desc string) {
 		case string:
 			Error.Error(desc + " 捕获到异常: " + err)
 		case error:
-			Error.Error(desc+" 捕获到异常: ", zap.Error(errors.WithStack(err)))
+			Error.Error(desc+" 捕获到异常: ", zap.Error(fmt.Errorf("%w", err)))
 		}
 	}
 }
 
 // 记录错误
 func Err(title string, err error) {
-	Error.Error(title, zap.Error(errors.WithStack(err)))
+	Error.Error(title, zap.Error(fmt.Errorf("%w", err)))
 }
 
 func HasError(err error, titles ...string) {
@@ -63,7 +63,7 @@ func HasError(err error, titles ...string) {
 		title = "执行错误！"
 	}
 	if err != nil {
-		Error.Error(title, zap.Error(errors.WithStack(err)))
+		Error.Error(title, zap.Error(fmt.Errorf("%w", err)))
 	}
 }
 

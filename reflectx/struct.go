@@ -12,35 +12,47 @@ type TableStruct struct {
 	PKs    []string
 }
 
-var tablemap map[any]TableStruct
-var lock sync.Mutex
+var tableCache sync.Map
 
 func GetTableStruct[T any]() TableStruct {
-	var t T
-	if cache, ok := tablemap[t]; ok {
-		return cache
-	} else {
-		lock.Lock()
-		if tablemap == nil {
-			tablemap = make(map[any]TableStruct)
+	typ := reflect.TypeOf((*T)(nil)).Elem()
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	if val, ok := tableCache.Load(typ); ok {
+		return val.(TableStruct)
+	}
+	table := parseTableStruct(typ)
+	tableCache.Store(typ, table)
+	return table
+}
+
+func parseTableStruct(typ reflect.Type) TableStruct {
+	numField := typ.NumField()
+	table := TableStruct{
+		Name:   typ.Name(),
+		Fields: numField,
+	}
+	for i := 0; i < numField; i++ {
+		field := typ.Field(i)
+		tag := field.Tag.Get("gorm")
+		if tag == "" {
+			continue
 		}
-		tof := reflect.TypeOf(t)
-		vk := tof.Kind()
-		if vk == reflect.Ptr {
-			tof = tof.Elem()
-		}
-		table := TableStruct{Name: tof.Name(), Fields: tof.NumField()}
-		for i := 0; i < tof.NumField(); i++ {
-			tag := tof.Field(i).Tag.Get("gorm")
-			if strings.Contains(tag, "primaryKey") {
-				in := strings.Index(tag, "column:")
-				if in != -1 {
-					table.PKs = append(table.PKs, tag[in+7:])
+		if strings.Contains(tag, "primaryKey") {
+			columnName := ""
+			parts := strings.Split(tag, ";")
+			for _, part := range parts {
+				if strings.HasPrefix(part, "column:") {
+					columnName = strings.TrimPrefix(part, "column:")
+					break
 				}
 			}
+			if columnName == "" {
+				columnName = field.Name
+			}
+			table.PKs = append(table.PKs, columnName)
 		}
-		tablemap[t] = table
-		lock.Unlock()
-		return table
 	}
+	return table
 }

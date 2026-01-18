@@ -1,126 +1,121 @@
 package runner
 
 import (
+	"context"
+	"fmt"
 	"reflect"
 	"sync"
+	"sync/atomic"
 	"time"
-
-	"github.com/livexy/pkg/util"
 )
 
-var callmap sync.Map
-
-type call struct {
+type CallGroup struct {
 	ticker *time.Ticker
-	fnmap  sync.Map
+	fnMap  sync.Map
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
-type fn struct {
+type taskNode struct {
 	fn     any
 	params []any
-	sum    int64
+	sum    atomic.Int64
 }
 
-func (c *call) start() {
+var globalCallers sync.Map
+
+func TickerCall(second int, name string, fn any, params ...any) {
+	c := getOrNewCaller(second)
+	key := fmt.Sprintf("%s:%v", name, params)
+	c.fnMap.LoadOrStore(key, &taskNode{fn: fn, params: params})
+}
+
+func TickerSum(second int, name string, fn any, val int64, params ...any) {
+	c := getOrNewCaller(second)
+	key := fmt.Sprintf("%s:%v", name, params)
+	actual, _ := c.fnMap.LoadOrStore(key, &taskNode{fn: fn, params: params})
+	node := actual.(*taskNode)
+	node.sum.Add(val)
+}
+
+func getOrNewCaller(second int) *CallGroup {
+	if obj, ok := globalCallers.Load(second); ok {
+		return obj.(*CallGroup)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	c := &CallGroup{
+		ticker: time.NewTicker(time.Duration(second) * time.Second),
+		ctx:    ctx,
+		cancel: cancel,
+	}
+	actual, loaded := globalCallers.LoadOrStore(second, c)
+	if !loaded {
+		go c.run()
+	} else {
+		cancel()
+		return actual.(*CallGroup)
+	}
+	return c
+}
+
+func (c *CallGroup) run() {
+	defer c.ticker.Stop()
 	for {
-		<-c.ticker.C
-		c.do()
+		select {
+		case <-c.ticker.C:
+			c.execute()
+		case <-c.ctx.Done():
+			c.execute()
+			return
+		}
 	}
 }
 
-func (c *call) do() {
-	c.fnmap.Range(func(k, v any) bool {
-		val := v.(*fn)
-		if val.sum > 0 {
-			param := val.params
-			param = append(param, val.sum)
-			reflectcall(val.fn, param...)
-		} else {
-			reflectcall(val.fn, val.params...)
+func (c *CallGroup) execute() {
+	c.fnMap.Range(func(k, v any) bool {
+		c.fnMap.Delete(k)
+		node := v.(*taskNode)
+		s := node.sum.Load()
+		params := node.params
+		if s > 0 {
+			params = append(params, s)
 		}
-		c.fnmap.Delete(k)
+		go safeReflectCall(node.fn, params...)
 		return true
 	})
 }
 
-func (c *call) stop() {
-	c.ticker.Stop()
-	c.do()
-}
-
-func (c *call) call(name string, f any, ps ...any) {
-	key := name + ":" + util.ToStr(ps...)
-	if _, ok := c.fnmap.Load(key); !ok {
-		c.fnmap.Store(key, &fn{fn: f, params: ps})
-	}
-}
-
-func (c *call) sum(name string, f any, val int64, ps ...any) {
-	key := name + ":" + util.ToStr(ps...)
-	var ff *fn
-	obj, ok := c.fnmap.Load(key)
-	if !ok {
-		ff = &fn{fn: f, params: ps, sum:0 }
-	} else {
-		ff = obj.(*fn)
-	}
-	ff.sum += val
-	c.fnmap.Store(key, ff)
-}
-
-func newcall(second int) *call {
-	c := &call{}
-	c.ticker = time.NewTicker(time.Duration(second) * time.Second)
-	go c.start()
-	return c
-}
-
-func TickerCall(second int, name string, fn any, params ...any) {
-	var c *call
-	obj, ok := callmap.Load(second)
-	if ok {
-		c = obj.(*call)
-	} else {
-		c = newcall(second)
-		callmap.Store(second, c)
-	}
-	c.call(name, fn, params...)
-}
-
-func TickerSum(second int, name string, fn any, val int64, params ...any) {
-	var c *call
-	obj, ok := callmap.Load(second)
-	if ok {
-		c = obj.(*call)
-	} else {
-		c = newcall(second)
-		callmap.Store(second, c)
-	}
-	c.sum(name, fn, val, params...)
+func (c *CallGroup) stop() {
+	c.cancel()
 }
 
 func TickerStop(seconds ...int) {
 	if len(seconds) == 0 {
-		callmap.Range(func(k, v any) bool {
-			v.(*call).stop()
-			callmap.Delete(k)
+		globalCallers.Range(func(k, v any) bool {
+			v.(*CallGroup).stop()
+			globalCallers.Delete(k)
 			return true
 		})
 	} else {
-		for _, second := range seconds {
-			if obj, ok := callmap.Load(second); ok {
-				obj.(*call).stop()
-				callmap.Delete(second)
+		for _, s := range seconds {
+			if obj, ok := globalCallers.Load(s); ok {
+				obj.(*CallGroup).stop()
+				globalCallers.Delete(s)
 			}
 		}
 	}
 }
 
-func reflectcall(f any, params ...any) {
-	fun := reflect.ValueOf(f)
+func safeReflectCall(f any, params ...any) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("runner reflect call panic: %v\n", r)
+		}
+	}()
+	v := reflect.ValueOf(f)
 	in := make([]reflect.Value, len(params))
-	for k, param := range params {
-		in[k] = reflect.ValueOf(param)
+	for i, p := range params {
+		in[i] = reflect.ValueOf(p)
 	}
-	fun.Call(in)
+	v.Call(in)
 }

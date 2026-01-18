@@ -7,44 +7,44 @@ import (
 	"sync"
 )
 
-var namemap map[uintptr]string
-var lock sync.Mutex
+var funcNameCache sync.Map
+
 func GetCurrFuncName() string {
-	pcs := make([]uintptr, 1)
-	runtime.Callers(2, pcs)
-	pc := pcs[0]
-	if name, ok := namemap[pc]; ok {
-		return name
-	} else {
-		lock.Lock()
-		if namemap == nil {
-			namemap = make(map[uintptr]string)
-		}
-		name := runtime.FuncForPC(pc).Name()
-		if index := strings.LastIndex(name, "."); index > 0 {
-			name = name[index+1:]
-		}
-		namemap[pc] = name
-		lock.Unlock()
-		return name
+	pc, _, _, ok := runtime.Caller(1)
+	if !ok {
+		return "unknown"
 	}
+	return getFuncNameByPC(pc)
 }
 
 func GetCallFuncName(fn any) string {
-	pc := reflect.ValueOf(fn).Pointer()
-	if name, ok := namemap[pc]; ok {
-		return name
-	} else {
-		lock.Lock()
-		if namemap == nil {
-			namemap = make(map[uintptr]string)
-		}
-		name := runtime.FuncForPC(pc).Name()
-		if index := strings.LastIndex(name, "."); index > 0 {
-			name = name[index+1:]
-		}
-		namemap[pc] = name
-		lock.Unlock()
-		return name
+	if fn == nil {
+		return "nil"
 	}
+	v := reflect.ValueOf(fn)
+	if v.Kind() != reflect.Func {
+		return "not_func"
+	}
+	pc := v.Pointer()
+	return getFuncNameByPC(pc)
+}
+
+func getFuncNameByPC(pc uintptr) string {
+	if name, ok := funcNameCache.Load(pc); ok {
+		return name.(string)
+	}
+	f := runtime.FuncForPC(pc)
+	if f == nil {
+		return "unknown"
+	}
+	fullName := f.Name()
+	shortName := fullName
+	if idx := strings.LastIndexByte(fullName, '.'); idx >= 0 {
+		shortName = fullName[idx+1:]
+	}
+	if idx := strings.Index(shortName, ".func"); idx >= 0 {
+		shortName = shortName[:idx]
+	}
+	funcNameCache.Store(pc, shortName)
+	return shortName
 }

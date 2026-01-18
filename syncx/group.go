@@ -1,9 +1,10 @@
 package syncx
 
 import (
+	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 type Group struct {
@@ -51,7 +52,7 @@ func (g *Group) doCall(c *call, key string, fn func() error) {
 			if err := recover(); err != nil {
 				switch v := err.(type) {
 				case error:
-					c.err = errors.WithStack(v)
+					c.err = fmt.Errorf("%w", v)
 				case string:
 					c.err = errors.New(v)
 				default:
