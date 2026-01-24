@@ -7,45 +7,68 @@ import (
 	"github.com/livexy/pkg/logx"
 	"github.com/livexy/pkg/strx"
 
+	"sync"
+
 	"github.com/klauspost/compress/zstd"
 	"go.uber.org/zap"
 )
 
-var encoder, _ = zstd.NewWriter(nil)
-var decoder, _ = zstd.NewReader(nil)
+var encoderPool = sync.Pool{
+	New: func() any {
+		e, _ := zstd.NewWriter(nil)
+		return e
+	},
+}
 
-// 压缩数据 bytes
+var decoderPool = sync.Pool{
+	New: func() any {
+		d, _ := zstd.NewReader(nil)
+		return d
+	},
+}
+
+// EncodeBytes 使用 zstd 压缩字节切片
 func EncodeBytes(d []byte) []byte {
-	return encoder.EncodeAll(d, make([]byte, 0, len(d)))
+	enc := encoderPool.Get().(*zstd.Encoder)
+	defer encoderPool.Put(enc)
+	return enc.EncodeAll(d, make([]byte, 0, len(d)))
 }
 
-// 解压缩数据 bytes
+// DecodeBytes 使用 zstd 解压字节切片
 func DecodeBytes(s []byte) ([]byte, error) {
-	d, err := decoder.DecodeAll(s, nil)
+	dec := decoderPool.Get().(*zstd.Decoder)
+	defer decoderPool.Put(dec)
+	d, err := dec.DecodeAll(s, nil)
 	if err != nil {
 		logx.Error.Error("zstd解压错误", zap.Error(err))
 	}
 	return d, err
 }
 
-// 压缩数据 base64
+// EncodeBase64 压缩字节切片并返回 Base64 字符串
 func EncodeBase64(d []byte) string {
-	return base64.StdEncoding.EncodeToString(encoder.EncodeAll(d, make([]byte, 0, len(d))))
+	enc := encoderPool.Get().(*zstd.Encoder)
+	defer encoderPool.Put(enc)
+	return base64.StdEncoding.EncodeToString(enc.EncodeAll(d, make([]byte, 0, len(d))))
 }
 
-// 解压缩数据 string
+// DecodeString 使用 zstd 解压字符串
 func DecodeString(s string) ([]byte, error) {
-	d, err := decoder.DecodeAll(strx.ToBytes(s), nil)
+	dec := decoderPool.Get().(*zstd.Decoder)
+	defer decoderPool.Put(dec)
+	d, err := dec.DecodeAll(strx.ToBytes(s), nil)
 	if err != nil {
 		logx.Error.Error("zstd解压错误", zap.Error(err))
 	}
 	return d, err
 }
 
-// 解压缩数据 base64
+// DecodeBase64 解码 Base64 字符串并使用 zstd 解压
 func DecodeBase64(s string) (string, error) {
 	o, _ := base64.StdEncoding.DecodeString(s)
-	d, err := decoder.DecodeAll(o, nil)
+	dec := decoderPool.Get().(*zstd.Decoder)
+	defer decoderPool.Put(dec)
+	d, err := dec.DecodeAll(o, nil)
 	if err != nil {
 		logx.Error.Error("zstd解压错误", zap.Error(err))
 		return "", err

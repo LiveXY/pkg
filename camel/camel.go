@@ -1,9 +1,9 @@
-
 package camel
 
 import (
 	"bytes"
 	"strings"
+	"unicode"
 )
 
 var commonInitialisms = []string{"ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS"}
@@ -14,14 +14,16 @@ func init() {
 	var commonInitialismsForReplacer []string
 	var uncommonInitialismsForReplacer []string
 	for _, initialism := range commonInitialisms {
-		commonInitialismsForReplacer = append(commonInitialismsForReplacer, initialism, strings.Title(strings.ToLower(initialism)))
-		uncommonInitialismsForReplacer = append(uncommonInitialismsForReplacer, strings.Title(strings.ToLower(initialism)), initialism)
+		lower := strings.ToLower(initialism)
+		title := string(unicode.ToUpper(rune(lower[0]))) + lower[1:]
+		commonInitialismsForReplacer = append(commonInitialismsForReplacer, initialism, title)
+		uncommonInitialismsForReplacer = append(uncommonInitialismsForReplacer, title, initialism)
 	}
 	commonInitialismsReplacer = strings.NewReplacer(commonInitialismsForReplacer...)
 	uncommonInitialismsReplacer = strings.NewReplacer(uncommonInitialismsForReplacer...)
 }
 
-// 大驼峰
+// BigCamel 将下划线命名转换为大驼峰命名（UpperCamelCase）
 func BigCamel(name string) string {
 	if name == "" {
 		return ""
@@ -31,7 +33,7 @@ func BigCamel(name string) string {
 	for _, v := range temp {
 		vv := []rune(v)
 		if len(vv) > 0 {
-			if bool(vv[0] >= 'a' && vv[0] <= 'z') { //首字母大写
+			if vv[0] >= 'a' && vv[0] <= 'z' {
 				vv[0] -= 32
 			}
 			s += string(vv)
@@ -41,20 +43,20 @@ func BigCamel(name string) string {
 	return s
 }
 
-// 小驼峰
+// SmallCamel 将命名转换为小驼峰命名（lowerCamelCase）
 func SmallCamel(name string) string {
 	if name == "" {
 		return ""
 	}
 	value := commonInitialismsReplacer.Replace(name)
 	strs := []rune(value)
-	if bool(strs[0] >= 'A' && strs[0] <= 'Z') {
+	if strs[0] >= 'A' && strs[0] <= 'Z' {
 		strs[0] = strs[0] + 32
 	}
 	return string(strs)
 }
 
-// 回退到匈牙利命名
+// UnBigCamel 将驼峰命名转换回下划线命名（snake_case）
 func UnBigCamel(name string) string {
 	const (
 		lower = false
@@ -69,8 +71,8 @@ func UnBigCamel(name string) string {
 		lastCase, currCase, nextCase, nextNumber bool
 	)
 	for i, v := range value[:len(value)-1] {
-		nextCase = bool(value[i+1] >= 'A' && value[i+1] <= 'Z')
-		nextNumber = bool(value[i+1] >= '0' && value[i+1] <= '9')
+		nextCase = value[i+1] >= 'A' && value[i+1] <= 'Z'
+		nextNumber = value[i+1] >= '0' && value[i+1] <= '9'
 
 		if i > 0 {
 			if currCase == upper {

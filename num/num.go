@@ -2,28 +2,34 @@ package num
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/livexy/linq"
-
-	"github.com/shopspring/decimal"
 )
 
+// Int64ToStr 将 int64 转换为字符串
 func Int64ToStr(num int64) string {
 	return strconv.FormatInt(num, 10)
 }
+
+// UInt64ToStr 将 uint64 转换为字符串
 func UInt64ToStr(num uint64) string {
 	return strconv.FormatUint(num, 10)
 }
+
+// UIntToStr 将 uint 转换为字符串
 func UIntToStr(num uint) string {
 	return strconv.FormatUint(uint64(num), 10)
 }
+
+// IntToStr 将 int 转换为字符串
 func IntToStr(num int) string {
 	return strconv.Itoa(num)
 }
+
+// FloatToStr 将 float32 转换为字符串，可指定精度
 func FloatToStr(num float32, precs ...int) string {
 	prec := 2
 	if len(precs) > 0 {
@@ -31,6 +37,8 @@ func FloatToStr(num float32, precs ...int) string {
 	}
 	return strconv.FormatFloat(float64(num), 'f', prec, 64)
 }
+
+// Float64ToStr 将 float64 转换为字符串，可指定精度
 func Float64ToStr(num float64, precs ...int) string {
 	prec := 2
 	if len(precs) > 0 {
@@ -38,9 +46,13 @@ func Float64ToStr(num float64, precs ...int) string {
 	}
 	return strconv.FormatFloat(num, 'f', prec, 64)
 }
+
+// Int8ToStr 将 int8 转换为字符串
 func Int8ToStr(num int8) string {
 	return strconv.Itoa(int(num))
 }
+
+// Int8ArrayToStr 将 int8 切片转换为带分隔符的字符串
 func Int8ArrayToStr(list []int8, s string) string {
 	var sb strings.Builder
 	for i, v := range list {
@@ -51,16 +63,24 @@ func Int8ArrayToStr(list []int8, s string) string {
 	}
 	return sb.String()
 }
+
+// Int8ToStrArray 将 int8 切片转换为字符串切片，可过滤非正数
 func Int8ToStrArray(data []int8, gtzero bool) (list []string) {
+	seen := make(map[string]struct{})
 	for _, v := range data {
 		if gtzero && v <= 0 {
 			continue
 		}
-		list = append(list, Int8ToStr(v))
+		s := Int8ToStr(v)
+		if _, ok := seen[s]; !ok {
+			seen[s] = struct{}{}
+			list = append(list, s)
+		}
 	}
-	list = linq.Uniq(list)
 	return
 }
+
+// ArrayAddInt8 为 int8 切片中的每个元素增加指定数值
 func ArrayAddInt8(source []int8, val int8) []int8 {
 	for i := range source {
 		source[i] += val
@@ -68,59 +88,75 @@ func ArrayAddInt8(source []int8, val int8) []int8 {
 	return source
 }
 
+// FloatRound 对浮点数进行指定位数的四舍五入
 func FloatRound(val float64, n int32) float64 {
-	val, _ = decimal.NewFromFloat(val).Round(n).Float64()
-	return val
+	p := math.Pow(10, float64(n))
+	return math.Round(val*p) / p
 }
 
-// 转字符串
+// ToStr 将任意类型转换为字符串
 func ToStr(v any) string {
-	var tmp = reflect.Indirect(reflect.ValueOf(v)).Interface()
-	switch v := tmp.(type) {
-	case int64:
-		return strconv.FormatInt(v, 10)
-	case int:
-		return strconv.Itoa(v)
-	case int8:
-		return strconv.Itoa(int(v))
-	case int16:
-		return strconv.Itoa(int(v))
-	case int32:
-		return strconv.Itoa(int(v))
-	case uint64:
-		return strconv.FormatUint(v, 10)
-	case uint:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint8:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint16:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint32:
-		return strconv.FormatUint(uint64(v), 10)
-	case string:
-		return v
-	case []byte:
-		return string(v)
-	case bool:
-		return strconv.FormatBool(v)
-	case float32:
-		return strconv.FormatFloat(float64(v), 'f', 2, 32)
-	case float64:
-		return strconv.FormatFloat(v, 'f', 2, 64)
-	case time.Time:
-		return v.Format("2006-01-02 15:04:05")
-	case fmt.Stringer:
-		return v.String()
-	default:
+	if v == nil {
 		return ""
 	}
+
+	switch val := v.(type) {
+	case string:
+		return val
+	case int:
+		return strconv.Itoa(val)
+	case int64:
+		return strconv.FormatInt(val, 10)
+	case bool:
+		return strconv.FormatBool(val)
+	case []byte:
+		return string(val)
+	case float64:
+		return strconv.FormatFloat(val, 'f', 2, 64)
+	case time.Time:
+		return val.Format("2006-01-02 15:04:05")
+	case int8:
+		return strconv.Itoa(int(val))
+	case int32:
+		return strconv.Itoa(int(val))
+	case uint:
+		return strconv.FormatUint(uint64(val), 10)
+	case uint64:
+		return strconv.FormatUint(val, 10)
+	case fmt.Stringer:
+		return val.String()
+	}
+
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return ""
+		}
+		return ToStr(rv.Elem().Interface())
+	}
+
+	rv = reflect.Indirect(rv)
+	switch rv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return strconv.FormatInt(rv.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return strconv.FormatUint(rv.Uint(), 10)
+	case reflect.Float32, reflect.Float64:
+		return strconv.FormatFloat(rv.Float(), 'f', 2, 64)
+	case reflect.String:
+		return rv.String()
+	case reflect.Bool:
+		return strconv.FormatBool(rv.Bool())
+	}
+
+	return ""
 }
 
 var nums = [...]string{"零", "一", "二", "三", "四", "五", "六", "七", "八", "九"}
 var secs = [...]string{"", "万", "亿", "万亿", "亿亿"}
 var chns = [...]string{"", "十", "百", "千"}
 
-// 数字转中文数字
+// GetZHNum 将数字转换为中文数字字符串
 func GetZHNum(num int) (str string) {
 	if num < 1 {
 		return nums[0]
@@ -141,11 +177,12 @@ func GetZHNum(num int) (str string) {
 		num /= 10000
 		pos++
 	}
-	if strings.Index(str, "一十") == 0 {
-		str = str[3:]
+	if strings.HasPrefix(str, "一十") {
+		return str[3:]
 	}
-	return
+	return str
 }
+
 func secString(sec int) string {
 	str, pos, zero := "", 0, true
 	for sec > 0 {

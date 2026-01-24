@@ -9,6 +9,7 @@ import (
 
 var funcNameCache sync.Map
 
+// GetCurrFuncName 获取当前调用该函数的函数名称
 func GetCurrFuncName() string {
 	pc, _, _, ok := runtime.Caller(1)
 	if !ok {
@@ -17,6 +18,7 @@ func GetCurrFuncName() string {
 	return getFuncNameByPC(pc)
 }
 
+// GetCallFuncName 获取指定 function 变量的名称
 func GetCallFuncName(fn any) string {
 	if fn == nil {
 		return "nil"

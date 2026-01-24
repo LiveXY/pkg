@@ -9,7 +9,7 @@ import (
 	"github.com/livexy/pkg/num"
 )
 
-// 格式输出文件大小
+// FormatFileSize 格式化输出文件大小（B, KB, MB, GB, TB, EB）
 func FormatFileSize(fileSize uint64) (size string) {
 	if fileSize < 1024 {
 		size = fmt.Sprintf("%.2fB", float64(fileSize)/float64(1))
@@ -27,7 +27,7 @@ func FormatFileSize(fileSize uint64) (size string) {
 	return
 }
 
-// 格式化用时
+// FormatUseTime 格式化输出用时（s, m, h, d）
 func FormatUseTime(t int64) (size string) {
 	if t < 1 {
 		return ""
@@ -52,7 +52,7 @@ func FormatUseTime(t int64) (size string) {
 	}
 }
 
-// 格式化用时
+// FormatCNUseTime 格式化中文输出用时（秒, 分, 时, 天）
 func FormatCNUseTime(t int64) (size string) {
 	if t < 1 {
 		return ""
@@ -77,7 +77,7 @@ func FormatCNUseTime(t int64) (size string) {
 	}
 }
 
-// 用时
+// UseTime 测试带索引参数的函数执行耗时
 func UseTime(title string, fn func(int), n ...int) string {
 	start := time.Now()
 	num := 1
@@ -91,41 +91,40 @@ func UseTime(title string, fn func(int), n ...int) string {
 	return title + "执行" + strconv.Itoa(num) + "次用时：" + cost.String()
 }
 
+// ToStr 将多个参数转换为以下划线连接的字符串
 func ToStr(params ...any) string {
-	len := len(params)
-	var key string
-	for i := 0; i < len; i++ {
-		param := params[i]
+	var key strings.Builder
+	for _, param := range params {
 		switch t := param.(type) {
 		case string:
-			key += t + "_"
+			key.WriteString(t + "_")
 		case int8:
-			key += num.Int8ToStr(t) + "_"
+			key.WriteString(num.Int8ToStr(t) + "_")
 		case int:
-			key += num.IntToStr(t) + "_"
+			key.WriteString(num.IntToStr(t) + "_")
 		case int32:
-			key += num.IntToStr(int(t)) + "_"
+			key.WriteString(num.IntToStr(int(t)) + "_")
 		case int64:
-			key += num.Int64ToStr(t) + "_"
+			key.WriteString(num.Int64ToStr(t) + "_")
 		case uint8:
-			key += num.UIntToStr(uint(t)) + "_"
+			key.WriteString(num.UIntToStr(uint(t)) + "_")
 		case uint:
-			key += num.UIntToStr(t) + "_"
+			key.WriteString(num.UIntToStr(t) + "_")
 		case uint32:
-			key += num.UIntToStr(uint(t)) + "_"
+			key.WriteString(num.UIntToStr(uint(t)) + "_")
 		case uint64:
-			key += num.UInt64ToStr(t) + "_"
+			key.WriteString(num.UInt64ToStr(t) + "_")
 		case float32:
-			key += strings.ReplaceAll(num.FloatToStr(t), ".00", "") + "_"
+			key.WriteString(strings.ReplaceAll(num.FloatToStr(t), ".00", "") + "_")
 		case float64:
-			key += strings.ReplaceAll(num.Float64ToStr(t), ".00", "") + "_"
+			key.WriteString(strings.ReplaceAll(num.Float64ToStr(t), ".00", "") + "_")
 		case bool:
 			if bool(t) {
-				key += "True_"
+				key.WriteString("True_")
 			} else {
-				key += "False_"
+				key.WriteString("False_")
 			}
 		}
 	}
-	return strings.TrimSuffix(key, "_")
+	return strings.TrimSuffix(key.String(), "_")
 }

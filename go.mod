@@ -6,10 +6,8 @@ require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/klauspost/compress v1.18.3
-	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20260109033043-398149f17e54
-	github.com/livexy/linq v1.0.9
+	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20260121081438-f2c988287c27
 	github.com/puzpuzpuz/xsync/v4 v4.3.0
-	github.com/shopspring/decimal v1.4.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.uber.org/zap v1.27.1
 	golang.org/x/text v0.33.0

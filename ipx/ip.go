@@ -13,7 +13,7 @@ import (
 
 var searcher *service.Ip2Region
 
-// 初始化IP库
+// Init 初始化 IP2Region 地址库
 func Init(dbfile string) {
 	v4Config, err := service.NewV4Config(service.VIndexCache, dbfile, 20)
 	if err != nil {
@@ -30,25 +30,16 @@ func Init(dbfile string) {
 		logx.Error.Error("未配置IP地址库：", zap.Error(err))
 		panic("未配置IP地址库->" + dbfile)
 	}
-	/*cbuff, err := xdb.LoadContentFromFile(dbfile)
-	if err != nil {
-		logx.Error.Error("未配置IP地址库：", zap.Error(err))
-		panic("未配置IP地址库->" + dbfile)
-	}
-	searcher, err = xdb.NewWithBuffer(xdb.IPv4, cbuff)
-	if err != nil {
-		logx.Error.Error("未配置IP地址库：", zap.Error(err))
-		panic("未配置IP地址库->" + dbfile)
-	}*/
 }
 
+// Close 关闭地址库资源
 func Close() {
 	if searcher != nil {
 		searcher.Close()
 	}
 }
 
-// 获取IP地址
+// GetIPAddress 根据 IP 查询具体的物理地址描述
 func GetIPAddress(ip string) string {
 	address, _ := searcher.SearchByStr(ip)
 	add := strings.Split(address, "|")
@@ -67,7 +58,7 @@ func GetIPAddress(ip string) string {
 var localIP string
 var once2 sync.Once
 
-// 获取本机IP
+// GetPrivateIPv4 获取当前主机的私有 IPv4 地址
 func GetPrivateIPv4() string {
 	once2.Do(func() {
 		localIP = getPrivateIPv4()

@@ -6,12 +6,14 @@ import (
 	"sync"
 )
 
+// GroupResultV3 增强型泛型结果结构体，包含共享标记
 type GroupResultV3[T any] struct {
 	Val    T
 	Err    error
 	Shared bool
 }
 
+// GroupV3 增强型泛型并发控制组，支持 Channel 返回
 type GroupV3[T any] struct {
 	mu sync.Mutex
 	m  map[string]*callv3[T]
@@ -24,6 +26,7 @@ type callv3[T any] struct {
 	chans []chan<- GroupResultV3[T]
 }
 
+// Do 执行带泛型返回值的任务，并返回结果是否为共享
 func (g *GroupV3[T]) Do(key string, fn func() GroupResultV3[T]) GroupResultV3[T] {
 	g.mu.Lock()
 	if g.m == nil {
@@ -45,6 +48,7 @@ func (g *GroupV3[T]) Do(key string, fn func() GroupResultV3[T]) GroupResultV3[T]
 	return c.res
 }
 
+// DoChan 执行任务并通过 Channel 返回结果
 func (g *GroupV3[T]) DoChan(key string, fn func() GroupResultV3[T]) <-chan GroupResultV3[T] {
 	ch := make(chan GroupResultV3[T], 1)
 	g.mu.Lock()
@@ -97,6 +101,7 @@ func (g *GroupV3[T]) docallv3(c *callv3[T], key string, fn func() GroupResultV3[
 	}()
 }
 
+// Forget 手动删除指定 key 的缓存任务
 func (g *GroupV3[T]) Forget(key string) {
 	g.mu.Lock()
 	delete(g.m, key)

@@ -30,12 +30,13 @@ func check(text string, keys []string) bool {
 	return flag
 }
 
+// FastTemplate 使用 fasttemplate 高效处理简单占位符替换，自动适配 HTML 和 text 模式
 func FastTemplate(text string, param map[string]any) (string, error) {
 	if len(text) == 0 {
 		return "", nil
 	}
 	if check(text, htmlkeys) {
-		return HtmlTemplate(text, param)
+		return HTMLTemplate(text, param)
 	}
 	if check(text, textkeys) {
 		return TextTemplate(text, param)
@@ -54,6 +55,7 @@ func FastTemplate(text string, param map[string]any) (string, error) {
 	}
 }
 
+// TextTemplate 使用标准库 text/template 处理模板
 func TextTemplate(text string, param map[string]any) (string, error) {
 	if len(text) == 0 {
 		return "", nil
@@ -81,7 +83,8 @@ func TextTemplate(text string, param map[string]any) (string, error) {
 	}
 }
 
-func HtmlTemplate(text string, param map[string]any) (string, error) {
+// HTMLTemplate 使用标准库 html/template 处理 HTML 模板（自动转义安全）
+func HTMLTemplate(text string, param map[string]any) (string, error) {
 	if len(text) == 0 {
 		return "", nil
 	}
@@ -108,7 +111,8 @@ func HtmlTemplate(text string, param map[string]any) (string, error) {
 	}
 }
 
-func HtmlFileTemplate(filename string, param interface{}, funcMap map[string]interface{}) (string, error) {
+// HTMLFileTemplate 从文件加载并处理 HTML 模板
+func HTMLFileTemplate(filename string, param any, funcMap map[string]any) (string, error) {
 	name := path.Base(filename)
 	var buf bytes.Buffer
 	obj, ok := htmlTemplateMap.Load(filename)

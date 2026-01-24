@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// CallGroup 调度任务组，按指定间隔批量执行任务
 type CallGroup struct {
 	ticker *time.Ticker
 	fnMap  sync.Map
@@ -24,12 +25,14 @@ type taskNode struct {
 
 var globalCallers sync.Map
 
+// TickerCall 注册一个定时调用的任务
 func TickerCall(second int, name string, fn any, params ...any) {
 	c := getOrNewCaller(second)
 	key := fmt.Sprintf("%s:%v", name, params)
 	c.fnMap.LoadOrStore(key, &taskNode{fn: fn, params: params})
 }
 
+// TickerSum 注册一个带累加参数的定时调用任务
 func TickerSum(second int, name string, fn any, val int64, params ...any) {
 	c := getOrNewCaller(second)
 	key := fmt.Sprintf("%s:%v", name, params)
@@ -89,6 +92,7 @@ func (c *CallGroup) stop() {
 	c.cancel()
 }
 
+// TickerStop 停止指定间隔或全部定时任务
 func TickerStop(seconds ...int) {
 	if len(seconds) == 0 {
 		globalCallers.Range(func(k, v any) bool {

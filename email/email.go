@@ -12,16 +12,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// SMTP配置
+// SMTPConfig 邮件发送配置
 type SMTPConfig struct {
-	Host     string `yaml:"host"`     // SMTP主机
-	Account  string `yaml:"account"`  // 账号
-	Password string `yaml:"password"` // 密码
-	Display  string `yaml:"display"`  // 显示名
-	From     string `yaml:"from"`     // 来自
+	Host     string `yaml:"host"`
+	Account  string `yaml:"account"`
+	Password string `yaml:"password"`
+	Display  string `yaml:"display"`
+	From     string `yaml:"from"`
 }
 
-// 发送邮件
+// SendEmail 发送 HTML 或 文本邮件
 func SendEmail(cfg SMTPConfig, to, subject, body string) (err error) {
 	if len(cfg.Host) < 5 || len(cfg.Account) < 5 || len(cfg.Password) < 5 {
 		return nil
@@ -54,7 +54,13 @@ func SendEmail(cfg SMTPConfig, to, subject, body string) (err error) {
 			from1 = cfg.Account
 		}
 	}
-	msg := strx.ToBytes("To: " + to + "\r\nFrom: " + from1 + "\r\nSubject: " + subject + "\r\n" + contenttype + "\r\n\r\n" + body)
+	var sb strings.Builder
+	sb.WriteString("To: " + to + "\r\n")
+	sb.WriteString("From: " + from1 + "\r\n")
+	sb.WriteString("Subject: " + subject + "\r\n")
+	sb.WriteString(contenttype + "\r\n\r\n")
+	sb.WriteString(body)
+	msg := strx.ToBytes(sb.String())
 	sendto := strings.Split(to, ";")
 	logx.Logger.Debug("发送邮件：", zap.String("from", from2), zap.String("to", to), zap.String("msg", bytex.ToStr(msg)), zap.Any("config", cfg))
 	if port == "465" {

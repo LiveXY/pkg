@@ -1,13 +1,14 @@
 package timex
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/livexy/pkg/strx"
 )
 
-// 用时
+// UseTime 测试函数执行耗时
 func UseTime(title string, fn func(), n ...int) string {
 	start := time.Now()
 	num := 1
@@ -21,6 +22,7 @@ func UseTime(title string, fn func(), n ...int) string {
 	return title + "执行" + strconv.Itoa(num) + "次用时：" + cost.String()
 }
 
+// Format 时间格式化枚举
 type Format uint
 
 const (
@@ -40,7 +42,7 @@ const (
 	ENYMDHMS
 )
 
-// 格式日期
+// ToStr 将 time.Time 转换为字符串
 func ToStr(t time.Time, format ...Format) string {
 	var f Format
 	if len(format) > 0 {
@@ -78,7 +80,7 @@ func ToStr(t time.Time, format ...Format) string {
 	}
 }
 
-// 日期转换为YMD int
+// ToInt 将时间转换为整数表示（如 YMD 整数）
 func ToInt(t time.Time, format ...Format) int {
 	var f Format
 	if len(format) > 0 {
@@ -90,30 +92,22 @@ func ToInt(t time.Time, format ...Format) int {
 	return strx.ToInt(ToStr(t, format...))
 }
 
-// Unix日期转字符串
+// UnixToStr 将 Unix 时间戳转换为字符串
 func UnixToStr(t int64, format ...Format) string {
-	return ToStr(UinxToTime(t), format...)
+	return ToStr(UnixToTime(t), format...)
 }
 
+// IntHMToStr 将小时分钟整数转换为 HH:mm 格式字符串
 func IntHMToStr(t int) string {
-	ts := strconv.Itoa(t)
-	switch len(ts) {
-	case 1:
-		ts = "00:0" + ts
-	case 2:
-		ts = "00:" + ts
-	case 3:
-		ts = "0" + ts[:1] + ":" + ts[1:]
-	case 4:
-		ts = ts[:2] + ":" + ts[2:]
-	}
-	return ts
+	h := t / 100
+	m := t % 100
+	return fmt.Sprintf("%02d:%02d", h, m)
 }
 
-// Uinx转时间
-func UinxToTime(t int64) time.Time { return time.Unix(t, 0) }
+// UnixToTime 将 Unix 时间戳转换为 time.Time
+func UnixToTime(t int64) time.Time { return time.Unix(t, 0) }
 
-// 获取周一日期
+// GetMondayInt 获取本周一的日期整数表示
 func GetMondayInt() (weekmonday int) {
 	now := time.Now()
 	weekmonday, err := strconv.Atoi(GetMondayTime(now).Format("20060102"))
@@ -122,6 +116,8 @@ func GetMondayInt() (weekmonday int) {
 	}
 	return
 }
+
+// GetMondayTime 获取指定时间所在周的周一时间
 func GetMondayTime(now time.Time) (monday time.Time) {
 	offset := int(time.Monday - now.Weekday())
 	if offset > 0 {

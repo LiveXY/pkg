@@ -5,11 +5,13 @@ import (
 	"sync"
 )
 
+// List 线程安全的切片容器，支持并发 Append 和 Get (FIFO)
 type List[V any] struct {
 	items []V
 	mu    sync.RWMutex
 }
 
+// New 创建一个新的 List 实例，可指定初始容量
 func New[V any](capacity ...int) *List[V] {
 	capSize := 1024
 	if len(capacity) > 0 && capacity[0] > 0 {
@@ -20,6 +22,7 @@ func New[V any](capacity ...int) *List[V] {
 	}
 }
 
+// Append 添加元素到列表末尾
 func (l *List[V]) Append(items ...V) *List[V] {
 	if len(items) == 0 {
 		return l
@@ -30,6 +33,7 @@ func (l *List[V]) Append(items ...V) *List[V] {
 	return l
 }
 
+// Get 从列表头部取出一个元素并移除它
 func (l *List[V]) Get() (V, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -47,6 +51,7 @@ func (l *List[V]) Get() (V, bool) {
 	return item, true
 }
 
+// List 返回当前所有元素的副本
 func (l *List[V]) List() []V {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -56,6 +61,7 @@ func (l *List[V]) List() []V {
 	return slices.Clone(l.items)
 }
 
+// Clear 清空列表
 func (l *List[V]) Clear(capacity ...int) *List[V] {
 	capSize := 1024
 	if len(capacity) > 0 {
@@ -68,12 +74,14 @@ func (l *List[V]) Clear(capacity ...int) *List[V] {
 	return l
 }
 
+// Count 获取当前元素数量
 func (l *List[V]) Count() int {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	return len(l.items)
 }
 
+// Empty 检查列表是否为空
 func (l *List[V]) Empty() bool {
 	l.mu.RLock()
 	defer l.mu.RUnlock()

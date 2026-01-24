@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -17,9 +16,10 @@ import (
 	"golang.org/x/text/transform"
 )
 
+// MaxDecompressSize 限制最大解压大小，防止压缩包炸弹
 const MaxDecompressSize = 2 * 1024 * 1024 * 1024
 
-// 解压文件
+// UnZip 解压指定的 zip 文件到目标目录，支持自动处理 GB18030 编码的文件名
 func UnZip(zipfile, dir string) ([]string, error) {
 	var list []string
 	cf, err := zip.OpenReader(zipfile)
@@ -40,7 +40,12 @@ func UnZip(zipfile, dir string) ([]string, error) {
 		} else {
 			decodeName = f.Name
 		}
-		fpath := path.Join(dir, decodeName)
+		fpath := filepath.Join(dir, decodeName)
+		rel, err := filepath.Rel(dir, fpath)
+		if err != nil || strings.HasPrefix(rel, "..") || strings.HasPrefix(rel, "/") {
+			continue
+		}
+
 		if f.FileInfo().IsDir() {
 			err := os.MkdirAll(fpath, f.Mode())
 			if err != nil {
@@ -58,7 +63,7 @@ func UnZip(zipfile, dir string) ([]string, error) {
 			if err != nil {
 				return list, err
 			}
-			fw, err := os.OpenFile(filepath.Clean(fpath), os.O_CREATE|os.O_RDWR|os.O_TRUNC, f.Mode())
+			fw, err := os.OpenFile(fpath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, f.Mode())
 			if err != nil {
 				_ = fr.Close()
 				return list, err
@@ -78,7 +83,7 @@ func UnZip(zipfile, dir string) ([]string, error) {
 	return list, nil
 }
 
-// 压缩文件
+// Zip 将指定的文件列表压缩为 zip 包
 func Zip(zipPath string, files []string) error {
 	if len(files) == 0 {
 		return errors.New("nil file")

@@ -62,7 +62,7 @@ func Sort(data map[string]any) string {
 	str := ""
 	for _, k := range ksort {
 		v := data[k]
-		str += fmt.Sprintf("%s%s", k, v)
+		str += fmt.Sprintf("%s%v", k, v)
 	}
 	return str
 }

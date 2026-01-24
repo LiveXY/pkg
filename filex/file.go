@@ -42,7 +42,7 @@ func readLine(r *bufio.Reader) (string, error) {
 		bs, isprefix, err = r.ReadLine()
 		line = append(line, bs...)
 	}
-	return bytex.ToStr(line), err
+	return string(line), err
 }
 
 // 读文本文件

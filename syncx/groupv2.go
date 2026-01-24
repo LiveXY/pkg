@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// GroupResultV2 泛型结果结构体
 type GroupResultV2[T any] struct {
 	Val T
 	Err error
@@ -16,11 +17,13 @@ type callv2[T any] struct {
 	res GroupResultV2[T]
 }
 
+// GroupV2 泛型并发控制组
 type GroupV2[T any] struct {
 	mu sync.Mutex
 	m  map[string]*callv2[T]
 }
 
+// Do 执行带泛型返回值的任务，确保相同 key 的并发调用只执行一次
 func (g *GroupV2[T]) Do(key string, fn func() GroupResultV2[T]) GroupResultV2[T] {
 	g.mu.Lock()
 	if g.m == nil {

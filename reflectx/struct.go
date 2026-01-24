@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// TableStruct 结构体元数据
 type TableStruct struct {
 	Name   string
 	Fields int
@@ -14,6 +15,7 @@ type TableStruct struct {
 
 var tableCache sync.Map
 
+// GetTableStruct 获取结构体的表元数据信息
 func GetTableStruct[T any]() TableStruct {
 	typ := reflect.TypeOf((*T)(nil)).Elem()
 	if typ.Kind() == reflect.Ptr {

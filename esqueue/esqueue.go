@@ -13,6 +13,7 @@ type esCache[V any] struct {
 	getno uint64
 }
 
+// EsQueue 高性能无锁并发队列
 type EsQueue[V any] struct {
 	cache    []esCache[V]
 	sleep    time.Duration
@@ -22,6 +23,7 @@ type EsQueue[V any] struct {
 	getpos   uint64
 }
 
+// NewQueue 创建一个新的高性能无锁队列
 func NewQueue[V any](capacity uint64, sleep time.Duration) *EsQueue[V] {
 	q := new(EsQueue[V])
 	q.capacity = minQuantity(capacity)
@@ -31,9 +33,6 @@ func NewQueue[V any](capacity uint64, sleep time.Duration) *EsQueue[V] {
 	q.sleep = sleep
 	q.cache = make([]esCache[V], q.capacity)
 	for i := range q.cache {
-		if i < 0 {
-			continue
-		}
 		cache := &q.cache[i]
 		cache.getno = uint64(i)
 		cache.putno = uint64(i)
@@ -44,16 +43,19 @@ func NewQueue[V any](capacity uint64, sleep time.Duration) *EsQueue[V] {
 	return q
 }
 
+// String 返回队列的描述信息
 func (q *EsQueue[V]) String() string {
 	getpos := atomic.LoadUint64(&q.getpos)
 	putpos := atomic.LoadUint64(&q.putpos)
 	return fmt.Sprintf("Queue{capacity: %v, capmod: %v, putpos: %v, getpos: %v}", q.capacity, q.capmod, putpos, getpos)
 }
 
+// Capacity 获取队列容量
 func (q *EsQueue[V]) Capacity() uint64 {
 	return q.capacity
 }
 
+// Quantity 获取当前队列中的元素数量
 func (q *EsQueue[V]) Quantity() uint64 {
 	var putpos, getpos uint64
 	var quantity uint64
@@ -67,6 +69,7 @@ func (q *EsQueue[V]) Quantity() uint64 {
 	return quantity
 }
 
+// Put 向队列中存入一个元素
 func (q *EsQueue[V]) Put(val V) (ok bool, quantity uint64) {
 	var putpos, putposnew, getpos, posCnt uint64
 	var cache *esCache[V]
@@ -100,6 +103,7 @@ func (q *EsQueue[V]) Put(val V) (ok bool, quantity uint64) {
 	}
 }
 
+// Puts 批量向队列中存入元素
 func (q *EsQueue[V]) Puts(values []V) (puts, quantity uint64) {
 	var putpos, putposnew, getpos, posCnt, putCnt uint64
 	getpos = atomic.LoadUint64(&q.getpos)
@@ -140,6 +144,7 @@ func (q *EsQueue[V]) Puts(values []V) (puts, quantity uint64) {
 	return putCnt, posCnt + putCnt
 }
 
+// Get 从队列中取出一个元素
 func (q *EsQueue[V]) Get() (val any, ok bool, quantity uint64) {
 	var putpos, getpos, getposnew, posCnt uint64
 	var cache *esCache[V]
@@ -174,6 +179,7 @@ func (q *EsQueue[V]) Get() (val any, ok bool, quantity uint64) {
 	}
 }
 
+// Gets 批量从队列中取出元素
 func (q *EsQueue[V]) Gets(values []any) (gets, quantity uint64) {
 	var putpos, getpos, getposnew, posCnt, getCnt uint64
 	putpos = atomic.LoadUint64(&q.putpos)
@@ -215,7 +221,6 @@ func (q *EsQueue[V]) Gets(values []any) (gets, quantity uint64) {
 	return getCnt, posCnt - getCnt
 }
 
-// round 到最近的2的倍数
 func minQuantity(v uint64) uint64 {
 	v--
 	v |= v >> 1
