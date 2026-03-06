@@ -75,8 +75,8 @@ func UnBigCamel(name string) string {
 		nextNumber = value[i+1] >= '0' && value[i+1] <= '9'
 
 		if i > 0 {
-			if currCase == upper {
-				if lastCase == upper && (nextCase == upper || nextNumber == upper) {
+			if currCase {
+				if lastCase && (nextCase || nextNumber) {
 					buf.WriteRune(v)
 				} else {
 					if value[i-1] != '_' && value[i+1] != '_' {
@@ -86,7 +86,7 @@ func UnBigCamel(name string) string {
 				}
 			} else {
 				buf.WriteRune(v)
-				if i == len(value)-2 && (nextCase == upper && nextNumber == lower) {
+				if i == len(value)-2 && (nextCase && !nextNumber) {
 					buf.WriteRune('_')
 				}
 			}

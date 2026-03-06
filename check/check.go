@@ -76,7 +76,7 @@ func IsAlphanumeric(data string) bool {
 		return false
 	}
 	for _, v := range data {
-		if !(unicode.IsDigit(v) || unicode.IsLetter(v)) {
+		if !unicode.IsDigit(v) && !unicode.IsLetter(v) {
 			return false
 		}
 	}

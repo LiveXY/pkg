@@ -74,7 +74,7 @@ func SendEmail(cfg SMTPConfig, to, subject, body string) (err error) {
 			logx.Error.Error("发送邮件错误new client：", zap.String("to", to), zap.String("body", body), zap.Error(err))
 			return err
 		}
-		defer c.Close()
+		defer func() { _ = c.Close() }()
 		if ok, _ := c.Extension("AUTH"); ok {
 			if err = c.Auth(auth); err != nil {
 				logx.Error.Error("发送邮件错误auth：", zap.String("to", to), zap.String("body", body), zap.Error(err))
@@ -96,12 +96,12 @@ func SendEmail(cfg SMTPConfig, to, subject, body string) (err error) {
 			logx.Error.Error("发送邮件错误data：", zap.String("to", to), zap.String("body", body), zap.Error(err))
 			return err
 		}
-		defer w.Close()
+		defer func() { _ = w.Close() }()
 		if _, err = w.Write(msg); err != nil {
 			logx.Error.Error("发送邮件错误write：", zap.String("to", to), zap.String("body", body), zap.Error(err))
 			return err
 		}
-		err = c.Quit()
+		_ = c.Quit()
 	} else {
 		err := smtp.SendMail(cfg.Host, auth, from2, sendto, msg)
 		if err != nil {

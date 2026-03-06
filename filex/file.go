@@ -22,7 +22,7 @@ import (
 func ReadLine(fpath string) []string {
 	var data []string
 	f, _ := os.Open(filepath.Clean(fpath))
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	r := bufio.NewReader(f)
 	for {
 		line, err := readLine(r)
@@ -57,7 +57,7 @@ func WriteLine(fpath string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	_, err = file.Write(data)
 	if err != nil {
 		return err
@@ -97,12 +97,12 @@ func FileCopy(file, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 	out, err := os.Create(filepath.Clean(dst))
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() { _ = out.Close() }()
 	_, err = io.Copy(out, src)
 	return err
 }
@@ -123,7 +123,7 @@ func FileMD5(fpath string) string {
 	if err != nil {
 		return ""
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	md5 := md5.New() // #nosec G401
 	if _, err = io.Copy(md5, file); err != nil {
 		return ""
@@ -138,7 +138,7 @@ func FileSize(fpath string) int64 {
 	if err != nil {
 		return 0
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	info, err := file.Stat()
 	if err != nil {
 		return 0
@@ -165,7 +165,7 @@ func GetImageSize(fpath string) (int, int, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	defer imgfile.Close()
+	defer func() { _ = imgfile.Close() }()
 	img, _, err := image.DecodeConfig(imgfile)
 	if err != nil {
 		return 0, 0, err

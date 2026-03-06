@@ -21,7 +21,7 @@ func TestGroupDo(t *testing.T) {
 	done := make(chan bool)
 	for i := 0; i < 10; i++ {
 		go func() {
-			g.Do(key, fn)
+			_ = g.Do(key, fn)
 			done <- true
 		}()
 	}

@@ -62,7 +62,7 @@ func File(fpath string) *FileTypeResult {
 	if err != nil {
 		return &FileTypeResult{}
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 	var buffer [32]byte
 	n, _ := fd.Read(buffer[:])
 	return FileBytes(ext, buffer[:n])

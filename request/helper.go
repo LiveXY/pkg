@@ -29,7 +29,7 @@ func ConvertToQueryParams(params map[string]any) string {
 		if v == nil {
 			continue
 		}
-		buffer.WriteString(fmt.Sprintf("%s=%v&", k, v))
+		fmt.Fprintf(&buffer, "%s=%v&", k, v)
 	}
 	buffer.Truncate(buffer.Len() - 1)
 	return buffer.String()
@@ -41,7 +41,7 @@ func ConvertToQueryParamsRepetition(params []QueryParameter) string {
 		if v.Value == nil {
 			continue
 		}
-		buffer.WriteString(fmt.Sprintf("%s=%v&", v.Key, v.Value))
+		fmt.Fprintf(&buffer, "%s=%v&", v.Key, v.Value)
 	}
 	buffer.Truncate(buffer.Len() - 1)
 	return buffer.String()

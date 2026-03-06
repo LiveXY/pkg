@@ -26,7 +26,7 @@ func UnZip(zipfile, dir string) ([]string, error) {
 	if err != nil {
 		return list, err
 	}
-	defer cf.Close()
+	defer func() { _ = cf.Close() }()
 	var decodeName string
 	for _, f := range cf.File {
 		if strings.HasPrefix(f.Name, "__MACOSX") || strings.HasSuffix(f.Name, ".DS_Store") {
@@ -92,9 +92,9 @@ func Zip(zipPath string, files []string) error {
 	if err != nil {
 		return err
 	}
-	defer fzip.Close()
+	defer func() { _ = fzip.Close() }()
 	zipfile := zip.NewWriter(fzip)
-	defer zipfile.Close()
+	defer func() { _ = zipfile.Close() }()
 	for _, f := range files {
 		filename := filepath.Base(f)
 		fw, err := zipfile.Create(filename)

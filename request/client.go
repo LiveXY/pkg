@@ -93,7 +93,7 @@ func (a *Client) Request(method, url string, body io.Reader, headers ...Header) 
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	result, err := responseHandle(resp, err)
 	return result, err
 }
@@ -113,8 +113,8 @@ func (a *Client) UploadRequest(uri, fieldname string, params map[string]string, 
 
 	go func() {
 		defer file.Close()
-		defer pw.Close()
-		defer writer.Close()
+		defer func() { _ = pw.Close() }()
+		defer func() { _ = writer.Close() }()
 
 		part, err := writer.CreateFormFile(fieldname, name)
 		if err != nil {
@@ -145,7 +145,7 @@ func (a *Client) UploadRequest(uri, fieldname string, params map[string]string, 
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return responseHandle(resp, err)
 }
 
@@ -161,8 +161,8 @@ func (a *Client) UploadFiles(uri, fieldname string, params map[string]string, fi
 
 	go func() {
 		defer file.Close()
-		defer pw.Close()
-		defer writer.Close()
+		defer func() { _ = pw.Close() }()
+		defer func() { _ = writer.Close() }()
 
 		part, err := writer.CreateFormFile(fieldname, files.Filename)
 		if err != nil {
@@ -193,7 +193,7 @@ func (a *Client) UploadFiles(uri, fieldname string, params map[string]string, fi
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return responseHandle(resp, err)
 }
 

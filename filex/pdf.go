@@ -20,7 +20,7 @@ func pdfPages(reader io.ByteReader) (pages int) {
 	check:
 		switch match[i] {
 		case 0:
-			if !(b >= 'A' && b <= 'Z' || b >= 'a' && b <= 'z') {
+			if (b < 'A' || b > 'Z') && (b < 'a' || b > 'z') {
 				pages++
 			}
 			i = 0

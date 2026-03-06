@@ -44,7 +44,7 @@ func (l *dblogger) Trace(ctx context.Context, begin time.Time, fc func() (string
 	elapsed := time.Since(begin)
 	sql, _ := fc()
 	line := utils.FileWithLineNum()
-	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound) && l.SkipErrRecordNotFound) {
+	if err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) || !l.SkipErrRecordNotFound) {
 		DB.Error(err.Error(), zap.String("line", line), zap.Duration("elapsed", elapsed), zap.String("sql", sql))
 		return
 	}

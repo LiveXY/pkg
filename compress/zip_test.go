@@ -14,8 +14,8 @@ func TestZipUnZip(t *testing.T) {
 	// Create some test files
 	file1 := filepath.Join(tmpDir, "test1.txt")
 	file2 := filepath.Join(tmpDir, "test2.txt")
-	os.WriteFile(file1, []byte("content1"), 0644)
-	os.WriteFile(file2, []byte("content2"), 0644)
+	_ = os.WriteFile(file1, []byte("content1"), 0644)
+	_ = os.WriteFile(file2, []byte("content2"), 0644)
 
 	zipPath := filepath.Join(tmpDir, "test.zip")
 	files := []string{file1, file2}
@@ -28,7 +28,7 @@ func TestZipUnZip(t *testing.T) {
 
 	// Test UnZip
 	unzipDir := filepath.Join(tmpDir, "unzip")
-	os.Mkdir(unzipDir, 0755)
+	_ = os.Mkdir(unzipDir, 0755)
 
 	extractedFiles, err := UnZip(zipPath, unzipDir)
 	if err != nil {
